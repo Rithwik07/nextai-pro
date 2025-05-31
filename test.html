@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Key Test (Generate Content)</title>
+    <script type="module">
+        // Import the Generative AI SDK from CDN
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        // IMPORTANT: Replace with your ACTUAL GOOGLE_API_KEY from your .env.local
+        const API_KEY = "AIzaSyDKOPc-1N_Bhvu-IDeZMhHA4_FADIxJuJg"; 
+        const MODEL_ID = "gemini-1.5-flash"; // Using the model from your GitHub route.js
+
+        async function testGeminiKey() {
+            if (API_KEY === "YOUR_GOOGLE_API_KEY_HERE" || API_KEY.trim() === "") {
+                console.error("Please replace 'YOUR_GOOGLE_API_KEY_HERE' with your actual API key in the HTML file.");
+                document.getElementById('status').innerText = "ERROR: API Key not set in HTML.";
+                return;
+            }
+
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                console.log("Attempting to generate content with your API key...");
+
+                const model = genAI.getGenerativeModel({ model: MODEL_ID });
+                console.log(`Model '${MODEL_ID}' successfully loaded.`); // This line will not be reached if genAI itself failed.
+
+                const result = await model.generateContent("Explain AI in a few words.");
+                const responseText = result.response.text();
+
+                console.log("Successfully generated content:", responseText);
+                document.getElementById('status').innerText = `SUCCESS! Content generated. Check console for response.`;
+                document.getElementById('status').style.color = "green";
+
+            } catch (error) {
+                console.error("ERROR during content generation:", error);
+                let errorMessage = `ERROR: ${error.message}`;
+                if (error.response) {
+                    errorMessage += `\nAPI Response Status: ${error.response.status}`;
+                    error.response.json().then(jsonError => {
+                        errorMessage += `\nAPI Response Body (JSON): ${JSON.stringify(jsonError, null, 2)}`;
+                        document.getElementById('status').innerText = errorMessage;
+                        document.getElementById('status').style.color = "red";
+                    }).catch(() => {
+                        error.response.text().then(text => {
+                            errorMessage += `\nAPI Response Body: ${text}`;
+                            document.getElementById('status').innerText = errorMessage;
+                            document.getElementById('status').style.color = "red";
+                        });
+                    });
+                } else {
+                     document.getElementById('status').innerText = errorMessage;
+                     document.getElementById('status').style.color = "red";
+                }
+            }
+        }
+
+        // Run the test when the page loads
+        window.onload = testGeminiKey;
+    </script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #status { font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Gemini API Key Browser Test (Generate Content)</h1>
+    <p>This page is testing your Gemini API Key by trying to generate content directly from Google's API.</p>
+    <p>Open your browser's developer console (F12, then 'Console' tab) to see the full output.</p>
+    <div id="status">Testing...</div>
+</body>
+</html>
